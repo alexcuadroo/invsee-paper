@@ -1,0 +1,68 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build plugin with Maven
+        run: mvn -B clean package
+
+      - name: Extract version and tag metadata
+        id: meta
+        run: |
+          POM_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          else
+            TAG_NAME="v${POM_VERSION}"
+          fi
+          echo "version=${POM_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload JAR artifact to workflow run
+        uses: actions/upload-artifact@v4
+        with:
+          name: InvSee-${{ steps.meta.outputs.version }}
+          path: target/InvSee-*.jar
+          if-no-files-found: error
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: "InvSee ${{ steps.meta.outputs.tag }} (Paper 26.1 / 26.2 / 26.3)"
+          body: |
+            ### InvSee ${{ steps.meta.outputs.tag }}
+            Plugin para inspeccionar y editar en tiempo real inventarios, armadura, mano secundaria y Ender Chest de jugadores **Online** y **Offline**.
+            
+            - **Compatibilidad:** Paper `26.1`, `26.2` y `26.3` (Java 25)
+            - **Commit:** `${{ github.sha }}`
+          files: target/InvSee-${{ steps.meta.outputs.version }}.jar
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,29 @@
+name: InvSee
+version: '${project.version}'
+main: com.invsee.InvSeePlugin
+description: Plugin para ver y editar inventarios, armadura, mano secundaria y Ender Chest (online y offline)
+api-version: '26.1'
+authors:
+  - Alex
+permissions:
+  invsee.use:
+    description: Permite ver inventarios de jugadores (/invsee)
+    default: op
+  invsee.edit:
+    description: Permite modificar inventarios de jugadores en /invsee
+    default: op
+  invsee.offline:
+    description: Permite ver y modificar inventarios de jugadores desconectados
+    default: op
+  invsee.enderchest:
+    description: Permite ver el Ender Chest de jugadores (/endersee)
+    default: op
+  invsee.enderchest.edit:
+    description: Permite modificar el Ender Chest de jugadores en /endersee
+    default: op
+  invsee.exempt:
+    description: Protege al jugador de que otros vean o editen su inventario
+    default: false
+  invsee.exempt.bypass:
+    description: Permite ignorar la proteccion invsee.exempt
+    default: op
